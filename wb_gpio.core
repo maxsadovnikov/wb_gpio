@@ -1,0 +1,9 @@
+CAPI=1
+[main]
+name = ::wb_gpio:0
+
+[fileset rtl]
+files =
+    rtl/wrp_wb_gpio.vhd
+    rtl/wb_gpio.v[file_type=verilogSource]
+file_type = vhdlSource
