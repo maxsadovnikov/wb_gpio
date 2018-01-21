@@ -22,8 +22,17 @@ module wb_gpio (
   input wb_we_i,
   output reg wb_ack_o
 );
+  reg [7:0] oen;
+  reg [7:0] out;
 
-always @(posedge clk_sys_i or negedge rst_n_i)
+  wire wb_transaction = wb_cyc_i && wb_stb_i;
+  wire wb_write = wb_we_i && wb_transaction;
+  wire wb_read = !wb_we_i && wb_transaction;
+  
+  assign gpio_oen_o = oen;
+  assign gpio_out_o = out;
+  
+  always @(posedge clk_sys_i or negedge rst_n_i)
     if(!rst_n_i)
       wb_ack_o <= 0;
     else if(wb_transaction)
@@ -41,5 +50,18 @@ always @(posedge clk_sys_i or negedge rst_n_i)
         `ADDR_SET  : wb_dat_o <= out;
         default    : wb_dat_o <= 0;
       endcase
+  
+  always @(posedge clk_sys_i or negedge rst_n_i)
+    if(!rst_n_i)
+      oen <= 8'h00;
+    else if(wb_adr_i == `ADDR_OEN && wb_write)
+      oen <= wb_dat_i[7:0];
 
+  always @(posedge clk_sys_i or negedge rst_n_i)
+    if(!rst_n_i)
+      out <= 8'h00;
+    else if(wb_adr_i == `ADDR_RESET && wb_write)
+      out <= wb_dat_i[7:0];
+    else if(wb_adr_i == `ADDR_SET && wb_write)
+      out <= out | wb_dat_i[7:0];
 endmodule
